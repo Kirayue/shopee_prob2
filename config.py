@@ -15,7 +15,6 @@ _C.EVALUATE = CN()
 _C.EVALUATE.BATCH_SIZE = 32
 _C.EVALUATE.CSV = 'valid_split.csv'
 _C.EVALUATE.DATA_DIR = 'train'
-_C.EVALUATE.PREDICTION_CSV = 'valid_prediction.csv'
 _C.EVALUATE.NUM_WORKERS = 8
 
 _C.TEST = CN()

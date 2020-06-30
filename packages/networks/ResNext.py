@@ -11,7 +11,7 @@ class ResNext(nn.Module):
         for param in self.model.parameters():
             param.requires_grad = False
         num_features = self.model.fc.in_features
-        self.model.fc = nn.Linear(num_features, 43)
+        self.model.fc = nn.Linear(num_features, 42)
 
     def forward(self, x):
         x = self.model(x)

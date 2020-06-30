@@ -29,7 +29,7 @@ class DatasetShopee(Dataset):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         if self.transforms:
             image = self.transforms(image=image)['image']
-        return image, category
+        return image, category, filename
 
     def __len__(self):
         return len(self.df)

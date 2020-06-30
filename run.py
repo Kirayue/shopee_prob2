@@ -49,7 +49,7 @@ def create_supervised_trainer(model, optimizer, loss_fn, device):
     model.to(device)
 
     def _update(engine, batch_samples):
-        images, labels = batch_samples
+        images, labels, _ = batch_samples
         model.train()
         optimizer.zero_grad()
         images = images.to(device)
@@ -67,19 +67,19 @@ def create_supervised_trainer(model, optimizer, loss_fn, device):
 def create_supervised_evaluator(model, metrics, device):
     model.to(device)
 
-    def _inference(engine, batch):
-        print('JEEEE')
+    def _inference(engine, batch_samples):
         model.eval()
         outputs = []
         with torch.no_grad():
             model.to(device)
-            images = batch["image"].to(device)
-            info = batch["info"]
-            label = batch["label"]
-            preds = model(images).reshape(-1, 2)
+            images, labels, filenames = batch_samples
+            images = images.to(device)
+            preds = model(images)
             preds = torch.nn.functional.softmax(preds, dim=1)
-            outputs = preds[:, 1].cpu().numpy()
-            return outputs, label, info
+            preds = torch.argmax(preds, dim=1)
+            preds = preds.cpu().numpy()
+            labels = labels.cpu().numpy()
+            return preds, labels, filenames
 
     engine = Engine(_inference)
     for name, metric in metrics.items():
@@ -91,7 +91,7 @@ def create_supervised_evaluator(model, metrics, device):
 def create_summary_writer(model, data_loader, log_dir):
     writer = SummaryWriter(log_dir=log_dir)
     data_loader_iter = iter(data_loader)
-    images, _ = next(data_loader_iter)
+    images, _, _ = next(data_loader_iter)
     try:
         writer.add_graph(model, images)
     except Exception as e:
@@ -122,7 +122,7 @@ def run(mode, cfg):
         pbar.attach(trainer)
 
         evaluator = create_supervised_evaluator(
-            model, {"TOP_1": TOP_1(cfg.eval_cfg)}, device
+            model, {"TOP_1": TOP_1()}, device
         )
         evaluator.logger = setup_logger("evaluator")
         pbar.attach(evaluator)
@@ -151,10 +151,19 @@ def run(mode, cfg):
             trainer.logger.info("Model saved!")
             scheduler.step()
 
-        # @trainer.on(Events.EPOCH_COMPLETED(every=cfg.EVAL_MODEL_EVERY_EPOCH))
-        @trainer.on(Events.START)
+        @trainer.on(Events.EPOCH_COMPLETED(every=cfg.EVAL_MODEL_EVERY_EPOCH))
         def log_validation_results(engine):
             evaluator.run(train_loader)
+            metrics = evaluator.state.metrics
+            evaluator.logger.info(
+                "Training Results - Epoch: {} TOP_1: {:.2f}".format(
+                    trainer.state.epoch, metrics['TOP_1']
+                )
+            )
+            writer.add_scalar(
+                "training/TOP_1", metrics['TOP_1'], trainer.state.iteration
+            )
+
             evaluator.run(val_loader)
             metrics = evaluator.state.metrics
             evaluator.logger.info(
@@ -163,7 +172,7 @@ def run(mode, cfg):
                 )
             )
             writer.add_scalar(
-                "validation/FROC", metrics['TOP_1'], trainer.state.iteration
+                "validation/TOP_1", metrics['TOP_1'], trainer.state.iteration
             )
 
         trainer.run(train_loader, max_epochs=cfg.EPOCH)
@@ -180,12 +189,12 @@ def run(mode, cfg):
 
     elif mode == 'eval':
         evaluator = create_supervised_evaluator(
-            model, {"FROC": FROC(cfg.FROC)}, device
+            model, {"TOP_1": TOP_1()}, device
         )
         pbar.attach(evaluator)
         evaluator.logger = setup_logger('evaluator')
         evaluator.run(val_loader)
         metrics = evaluator.state.metrics
         evaluator.logger.info(
-            "Validation Results - FROC: {:.2f}".format(metrics['FROC'])
+            "Validation Results - TOP_1: {:.2f}".format(metrics['TOP_1'])
         )
