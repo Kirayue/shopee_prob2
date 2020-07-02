@@ -24,6 +24,8 @@ class Predict(Metric):
 
     @sync_all_reduce()
     def compute(self):
+        tmp = self.df['category'].tolist()
+        self.df['category'] = [f{cls:02} for cls in tmp]
         self.df.to_csv(self.prediction_csv_path, index=False)
 
 

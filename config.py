@@ -3,13 +3,13 @@ import math
 _C = CN()
 
 _C.SYSTEM = CN()
-_C.SYSTEM.USE_CUDA = False
+_C.SYSTEM.USE_CUDA = True
 
 _C.TRAIN = CN()
 _C.TRAIN.BATCH_SIZE = 32
 _C.TRAIN.CSV = 'train_split.csv'
 _C.TRAIN.DATA_DIR = 'train'
-_C.TRAIN.NUM_WORKERS = 0
+_C.TRAIN.NUM_WORKERS = 8
 
 _C.EVALUATE = CN()
 _C.EVALUATE.BATCH_SIZE = 32
