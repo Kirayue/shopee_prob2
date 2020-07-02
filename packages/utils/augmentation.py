@@ -1,4 +1,4 @@
-from albumentations import Compose, Resize, Normalize, Flip
+from albumentations import Compose, Resize, Normalize, Flip, Rotate
 from albumentations.pytorch import ToTensorV2
 
 
@@ -8,6 +8,9 @@ def get_transforms(cfg):
 
     if cfg.FLIP:
         train_transforms_list.append(Flip(p=cfg.FLIP_PROB))
+
+    if cfg.ROTATE:
+        train_transforms_list.append(Rotate(p=cfg.ROTATE_PROB))
 
     if cfg.NORMALIZE:
         train_transforms_list.append(Normalize())

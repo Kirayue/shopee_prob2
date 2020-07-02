@@ -20,7 +20,7 @@ class Predict(Metric):
     @reinit__is_reduced
     def update(self, batch_outputs):
         preds, _, filenames = batch_outputs
-        self.df = self.df.append(pd.DataFrame(list(zip(filenames, reds)), columns=self.df.columns))
+        self.df = self.df.append(pd.DataFrame(list(zip(filenames, preds)), columns=self.df.columns))
 
     @sync_all_reduce()
     def compute(self):

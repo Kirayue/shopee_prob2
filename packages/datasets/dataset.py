@@ -22,9 +22,10 @@ class DatasetShopee(Dataset):
         row = self.df.iloc[idx]
         category, filename = row['category'], row['filename']
         if category == 43:
-            image_path = f'{self.data_dir.__str__()}/{filename}' 
+            image_path = f'{self.data_dir / filename}'
         else:
-            image_path = f'{self.data_dir.__str__()}/{category:02}/{filename}' 
+            sub_dir = f'{category:02}'
+            image_path = f'{self.data_dir / sub_dir / filename}'
         image = cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         if self.transforms:

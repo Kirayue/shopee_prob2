@@ -180,11 +180,11 @@ def run(mode, cfg):
 
     elif mode == 'infer':
         predictor = create_supervised_evaluator(
-            model, {"Predict": Predict(cfg.PREDICT)}, device
+            model, {"Predict": Predict(cfg.TEST)}, device
         )
         pbar.attach(predictor)
         predictor.logger = setup_logger("predictor")
-        predictor.run(val_loader)
+        predictor.run(test_loader)
         predictor.logger.info("Inference Done.")
 
     elif mode == 'eval':
