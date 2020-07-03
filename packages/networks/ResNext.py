@@ -8,8 +8,8 @@ class ResNext(nn.Module):
     def __init__(self):
         super(ResNext, self).__init__()
         self.model = models.resnext50_32x4d(pretrained=True)
-        for param in self.model.parameters():
-            param.requires_grad = False
+        # for param in self.model.parameters():
+        #     param.requires_grad = False
         num_features = self.model.fc.in_features
         self.model.fc = nn.Linear(num_features, 42)
 
